@@ -2,24 +2,15 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const User = require('../../models/User');
+const jwt = require('jsonwebtoken');
 const config = require('config')
 const { check, validationResult } = require('express-validator');
-
-router.get('/', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error')
-    }
-})
+const bcrypt = require('bcryptjs');
 
 router.post('/', 
     [
-        check('name', 'Name is required').not().isEmpty(),
         check('email', 'Email not valid').isEmail(),
-        check('password', 'Password not valid').isLength({min: 6})
+        check('password', 'Password not valid').exists()
     ],
     async (req, res) => {
         console.log(req.body);
@@ -30,28 +21,27 @@ router.post('/',
             });
         }
         
-        const { name, email, password } = req.body;
+        const { email, password } = req.body;
 
         try {
             let user = await User.findOne({ email });
-            if (user) {
+            if (!user) {
                 return res.status(400).json({
                     errors: [
-                        {msg: 'User already exists'}
+                        {msg: 'Invalid credentials'}
                     ]
                 });
             }
+            console.log(user);
+            const isMatch = await bcrypt.compare(password, user.password);
 
-            user = new User({
-                name,
-                email,
-                password
-            });
-
-            const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(password, salt);
-
-            await user.save();
+            if (!isMatch) {
+                return res.status(400).json({
+                    errors: [
+                        {msg: 'Invalid credentials'}
+                    ]
+                });
+            }
 
             const payload = {
                 user: {
@@ -65,6 +55,7 @@ router.post('/',
                 res.json({token});
             });
         } catch (err) {
+            console.error(err);
             res.status(500).send("Server error");
         }
 });
