@@ -7,6 +7,8 @@ const config = require('config')
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 
+
+// User login
 router.post('/', 
     [
         check('email', 'Email not valid').isEmail(),
@@ -59,5 +61,16 @@ router.post('/',
             res.status(500).send("Server error");
         }
 });
+
+router.get('/', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        console.log(user);
+        return res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+})
 
 module.exports = router;
