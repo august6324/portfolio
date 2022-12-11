@@ -13,4 +13,3 @@ A Dynamic Portfolio Website framework built using MongoDB Express, Node and Reac
 ```
 
 - Returns: Token
-
