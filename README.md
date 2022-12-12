@@ -13,3 +13,20 @@ A Dynamic Portfolio Website framework built using MongoDB Express, Node and Reac
 ```
 
 - Returns: Token
+
+## New Post
+'/api/post'
+- Type: `POST`
+- Header: `x-auth-token = ...`
+- Body: 
+```
+    {
+        "text": "abcd"
+    }
+```
+
+- Returns: The Post
+
+
+TODO:
+Delete Post
